@@ -18,27 +18,32 @@ def getParameters():
     return ip, user, port
 
 def startClient():
-    print(f"You entered the chat. Your username is {user}. To leave the chat, press q.")
-    while True:
-        socketList = [clientSocket]
-        r,w,e = select.select(socketList, [], socketList)
-        for sock in r:
-            if sock == clientSocket:
-                # clientSocket.sendall(user.encode())
-                data = sock.recv(1024)
-                print(data)
-                # print(clientSocket)
-                # clientSocket.sendall(user.encode())
-                if (not data) or (data.decode == 'q'):
-                # if data.decode == 'q':
-                    print("Disconnected from chat server")
-                    sys.exit()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as clientSocket:
+        clientSocket.connect((ip,port))
+        # clientSocket.setblocking(False)
+        print(f"You entered the chat. Your username is {user}. To leave the chat, press q.")
+        while True:
+            socketList = [clientSocket]
+            # print(socketList)
+            # not working??
+            # r, w, e = select.select(socketList, [],socketList)
+            # print(r)
+            for sock in socketList:
+                print('s')
+                if sock == clientSocket:
+                    clientSocket.sendall(user.encode())
+                    data = sock.recv(1024)
+                    # clientSocket.sendall(user.encode())
+                    if (not data) or (data.decode == 'q'):
+                    # if data.decode == 'q':
+                        print("Disconnected from chat server")
+                        sys.exit()
+                    else:
+                        print('>',data.decode())
                 else:
-                    print('data received,', data)
-            else:
-                message = input(f'{user}: ')
-                dataToSend = f'{user}: {message}'
-                clientSocket.sendall(dataToSend.encode())
+                    message = input(f'{user}: ')
+                    dataToSend = f'{user}: {message}'
+                    clientSocket.sendall(dataToSend.encode())
                 
 
 
@@ -59,8 +64,5 @@ def startClient():
 
 # if __name__ == "__main__":
 ip, user, port = getParameters()
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as clientSocket:
-    clientSocket.connect((ip,port))
-    clientSocket.setblocking(False)
-    startClient()
+startClient()
 print('You have left the chat')

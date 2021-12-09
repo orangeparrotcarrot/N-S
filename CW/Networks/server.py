@@ -11,23 +11,40 @@ def getparameters():
         print("Port number must be an integer")
         sys.exit()
 
-def broadcastMessage(message, client):
-    print('message:', message)
-    print(socketList)
-    for c in socketList:
-        if (c != serverSocket):
-            try:
-                print(":)")
-                c.sendall(message) #not working???
-                print('message sent')
-            except:
-                print(':(')
-                c.close()
-                # broadcastMessage(f'{c} has left the chat', c)
-                socketList.remove(c)
-                print('connection closed')
+# def broadcastMessage(message, client):
+#     print(client)
+#     print(serverSocket)
+#     print(message)
+#     for c in socketList:
+#         if (c != serverSocket):
+#             with c:
+#                 try:
+#                     print(":)")
+#                     serverSocket.sendall(message) #not working???
+#                     print('message sent')
+#                 except:
+#                     print(':(')
+#                     c.close()
+#                     socketList.remove(c)
+#                     print('connection closed')
+
+def broadcast(sock, message):
+    for socket in socketList:
+        # send the message only to peer
+        # if socket != serverSocket and socket != sock : #ie all other clients
+        if socket != serverSocket:
+            try :
+                socket.sendall(message.encode())
+            except :
+                # broken socket connection
+                socket.close()
+                # broken socket, remove it
+                if socket in socketList:
+                    socketList.remove(socket)
+    print(message)
 
 def startServer(port):
+    clients = {}
     while True:
         r, w, e = select.select(socketList, [],socketList)
         for sock in r:
@@ -36,7 +53,12 @@ def startServer(port):
                 # new client - accept connection
                 connection, clientAddress = serverSocket.accept()
                 socketList.append(connection)
-                broadcastMessage('Someone has entered the chat', connection)
+                data = connection.recv(1024)
+                x = data.decode()
+                clients[x] = connection
+                # print('client connected at', connection)
+                # broadcastMessage(f'{x} has entered the chat', connection)
+                broadcast(connection, f'{x} has entered the chat')
     #             # with connection:
     #             #     while True:
     #             #         data = connection.recv(1024)
@@ -49,20 +71,20 @@ def startServer(port):
     #             #         connection.sendall(data)
     #             # break   
         # if it is an old connection - allow them to send messages
-            else:
-                with sock:
-                    while 1:
-                        data = sock.recv(1024)
-                        x = data.decode()
-                        if not data:
-                            break
-                        if x == 'q':
-                            broadcastMessage('Someone has left the chat', sock)
-                            serverSocket.remove(sock)
-                            sys.exit()
-                        sock.sendall(data)
-            if len(socketList) == 1:
-                sys.exit()
+            # else:
+            #     with sock:
+            #         while 1:
+            #             data = sock.recv(1024)
+            #             x = data.decode()
+            #             if not data:
+            #                 break
+            #             if x == 'q':
+            #                 broadcastMessage('Someone has left the chat', sock)
+            #                 serverSocket.remove(sock)
+            #                 sys.exit()
+            #             sock.sendall(data)
+            # if len(socketList) == 1:
+            #     sys.exit()
                 # break
 
 # single person !!
