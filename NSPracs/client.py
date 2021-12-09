@@ -7,7 +7,6 @@ def start_client():
 
     while True:
         message = input("Input lowercase sentence: ")
-        print("client, ", message)
         clientSocket.sendto(message.encode(), (serverName, serverPort))
         modifiedMessage, serverAddress = clientSocket.recvfrom(1024)
         if message == 'q':

@@ -9,7 +9,6 @@ def start_server():
     while True: 
         message, clientAddress = serverSocket.recvfrom(1024)
         # modifiedMessage = message.decode()
-        print(message.decode())
         if message.decode() == 'q':
             break
         else:

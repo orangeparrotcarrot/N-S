@@ -1,12 +1,19 @@
 import socket
 import select
 import errno
+import sys
 
 HEADER_LENGTH = 10
 
-IP = '192.168.139.1'
-PORT = 8800
-my_username = input("Username: ")
+
+IP = sys.argv[1]
+PORT = sys.argv[3]
+user_username = sys.argv[2]
+try: 
+    PORT = int(PORT)
+except:
+    print("Enter a number for the port number")
+    exit
 
 # Create a socket
 # socket.AF_INET - address family, IPv4, some otehr possible are AF_INET6, AF_BLUETOOTH, AF_UNIX
@@ -20,14 +27,15 @@ client_socket.setblocking(False)
 
 # Prepare username and header and send them
 # We need to encode username to bytes, then count number of bytes and prepare header of fixed size, that we encode to bytes as well
-username = my_username.encode('utf-8')
+username = user_username.encode('utf-8')
 username_header = f"{len(username):<{HEADER_LENGTH}}".encode('utf-8')
+print(username_header)
 client_socket.send(username_header + username)
 
 while True:
 
     # Wait for user to input a message
-    message = input(f'{my_username} > ')
+    message = input(f'{username} > ')
 
     # If message is not empty - send it
     if message:
@@ -43,6 +51,7 @@ while True:
 
             # Receive our "header" containing username length, it's size is defined and constant
             username_header = client_socket.recv(HEADER_LENGTH)
+            print(username_header)
 
             # If we received no data, server gracefully closed a connection, for example using socket.close() or socket.shutdown(socket.SHUT_RDWR)
             if not len(username_header):

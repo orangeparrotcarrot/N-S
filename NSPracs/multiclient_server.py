@@ -1,8 +1,15 @@
 import socket
 import select
+import sys
 
 ip = '192.168.139.1'
-port = 8800
+# port = 8800
+port = sys.argv[1]
+try: 
+    port = int(port)
+except:
+    print("Enter a number for the port number")
+    exit
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #overcomes address already in use error, allows us to reuse an address
 serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -38,7 +45,6 @@ while True:
 
             # Client should send his name right away, receive it
             user = receivemessage(client_socket)
-            print(user)
 
             # If False - client disconnected before he sent his name
             if user is False:
@@ -59,7 +65,7 @@ while True:
             message = receivemessage(notified_socket)
 
             # If False, client disconnected, cleanup
-            if message is False:
+            if message.decode() == 'exit':
                 print('Closed connection from: {}'.format(clients[notified_socket]['data'].decode('utf-8')))
 
                 # Remove from list for socket.socket()
