@@ -11,24 +11,8 @@ def getparameters():
         print("Port number must be an integer")
         sys.exit()
 
-# def broadcastMessage(message, client):
-#     print(client)
-#     print(serverSocket)
-#     print(message)
-#     for c in socketList:
-#         if (c != serverSocket):
-#             with c:
-#                 try:
-#                     print(":)")
-#                     serverSocket.sendall(message) #not working???
-#                     print('message sent')
-#                 except:
-#                     print(':(')
-#                     c.close()
-#                     socketList.remove(c)
-#                     print('connection closed')
-
 def broadcast(sock, message):
+    # print(len(socketList))
     for socket in socketList:
         # send the message only to peer
         # if socket != serverSocket and socket != sock : #ie all other clients
@@ -47,6 +31,9 @@ def startServer(port):
     clients = {}
     while True:
         r, w, e = select.select(socketList, [],socketList)
+        # print(r)
+        # print(socketList)
+        # print("\n")
         for sock in r:
         #if it is a new connection - tell everyone they joined
             if sock == serverSocket:
@@ -58,7 +45,7 @@ def startServer(port):
                 clients[x] = connection
                 # print('client connected at', connection)
                 # broadcastMessage(f'{x} has entered the chat', connection)
-                broadcast(connection, f'{x} has entered the chat')
+                broadcast(connection, f'{x} has entered the chat. Say hi!')
     #             # with connection:
     #             #     while True:
     #             #         data = connection.recv(1024)

@@ -8,7 +8,7 @@ def getParameters():
         user = sys.argv[2]
         port = sys.argv[3]
     except:
-        print("Enter an IP address, username and port number")
+        print("Format: IP address username port number")
         sys.exit()
     try:
         port = int(port)
@@ -20,16 +20,16 @@ def getParameters():
 def startClient():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as clientSocket:
         clientSocket.connect((ip,port))
-        # clientSocket.setblocking(False)
+        clientSocket.setblocking(False)
         print(f"You entered the chat. Your username is {user}. To leave the chat, press q.")
         while True:
             socketList = [clientSocket]
             # print(socketList)
             # not working??
             # r, w, e = select.select(socketList, [],socketList)
-            # print(r)
+            read_sockets, write_sockets, error_sockets = select.select(socketList , [], [])
+            print(read_sockets)
             for sock in socketList:
-                print('s')
                 if sock == clientSocket:
                     clientSocket.sendall(user.encode())
                     data = sock.recv(1024)
