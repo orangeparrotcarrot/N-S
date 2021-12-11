@@ -12,11 +12,23 @@ def getparameters():
         sys.exit()
 
 def broadcast(sock, message):
-    # print(len(socketList))
-    for socket in socketList:
+    #doesn't send to correct clients
+    # print(message)
+    eligibleSockets = socketList.copy()
+    # print(eligibleSockets)
+    try:
+        eligibleSockets.remove(sock)
+    except:
+        print('sock didn\'t work')
+    try:
+        eligibleSockets.remove(serverSocket)
+    except:
+        print('server did not work')
+    # print(eligibleSockets)
+    for socket in eligibleSockets:
         # send the message only to peer
-        # if socket != serverSocket and socket != sock : #ie all other clients
-        if socket != serverSocket:
+        if (socket != serverSocket) and (socket != sock) : #ie all other clients
+        # if socket != serverSocket:
             try :
                 socket.sendall(message.encode())
             except :
@@ -25,54 +37,39 @@ def broadcast(sock, message):
                 # broken socket, remove it
                 if socket in socketList:
                     socketList.remove(socket)
-    print(message)
+    # print(message)
 
 def startServer(port):
-    clients = {}
+    i = 0
     while True:
         r, w, e = select.select(socketList, [],socketList)
-        # print(r)
-        # print(socketList)
-        # print("\n")
-        for sock in r:
-        #if it is a new connection - tell everyone they joined
-            if sock == serverSocket:
-                # new client - accept connection
+        if (serverSocket in r):
                 connection, clientAddress = serverSocket.accept()
                 socketList.append(connection)
                 data = connection.recv(1024)
                 x = data.decode()
-                clients[x] = connection
-                # print('client connected at', connection)
-                # broadcastMessage(f'{x} has entered the chat', connection)
+                clients[connection]=x
+                connection.sendall(f"You entered the chat. Your username is {x}. To leave the chat, press q.".encode())
                 broadcast(connection, f'{x} has entered the chat. Say hi!')
-    #             # with connection:
-    #             #     while True:
-    #             #         data = connection.recv(1024)
-    #             #         x = data.decode()
-    #             #         print(x)
-    #             #         if not data:
-    #             #             break
-    #             #         elif x == 'q':
-    #             #             break
-    #             #         connection.sendall(data)
-    #             # break   
-        # if it is an old connection - allow them to send messages
-            # else:
-            #     with sock:
-            #         while 1:
-            #             data = sock.recv(1024)
-            #             x = data.decode()
-            #             if not data:
-            #                 break
-            #             if x == 'q':
-            #                 broadcastMessage('Someone has left the chat', sock)
-            #                 serverSocket.remove(sock)
-            #                 sys.exit()
-            #             sock.sendall(data)
-            # if len(socketList) == 1:
-            #     sys.exit()
-                # break
+                # serverSocket.sendall(f"You entered the chat. Your username is {x}. To leave the chat, press q.".encode())
+        else:
+            for s in r:
+                user = clients[s]
+                data = s.recv(1024)
+                x=data.decode()
+                message = x.split()
+                print(message)
+                if (not data) or (message[1]=='q'):
+                    s.sendall('q'.encode())
+                    broadcast(connection, f'{user} has left the chat')
+                    socketList.remove(s)
+                    del clients[s]
+                    connection.close()
+                else:
+                    broadcast(connection, x)
+        # print(socketList)
+        # print("\n")
+       
 
 # single person !!
 
@@ -93,6 +90,7 @@ def startServer(port):
     #     break
 
 # cd desktop/du/year 2/networks and systems/cw/networks
+# client.py 192.168.139.1 x 8080
 
 port = getparameters()
 ip = '192.168.139.1'
