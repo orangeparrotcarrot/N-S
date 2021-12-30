@@ -1,6 +1,6 @@
 import socket
-import select
 import sys
+import threading
 
 def getParameters():
     try:
@@ -17,31 +17,30 @@ def getParameters():
         sys.exit()
     return ip, user, port
 
-def startClient():
-    #doesn't work - has to send a message to receive a message
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as clientSocket:
-        clientSocket.connect((ip,port))
-        # clientSocket.setblocking(False)
-        # print(f"You entered the chat. Your username is {user}. To leave the chat, press q.")
-        clientSocket.sendall(user.encode())
-        data = clientSocket.recv(1024)
-        print(data.decode())
-        while True:
-            message = input(f'{user}: ')
-            if message != '':
-                dataToSend = f'{user}: {message}'
-                clientSocket.sendall(dataToSend.encode())
-                data = clientSocket.recv(1024)
-                x = data.decode()
-                print(x)
-                if x == 'q':
-                    print(x)
-                    clientSocket.close()
-                    print('closed')
-                    sys.exit()
-                
+def receiveMessage():
+    while True:                                                 #making valid connection
+        try:
+            message = clientSocket.recv(1024).decode()
+            if message == 'NICKNAME':
+                clientSocket.sendall(user.encode())
+            else:
+                print(message)
+        except:                                                 #case on wrong ip/port details
+            print("An error occured!")
+            clientSocket.close()
+            break
 
-# if __name__ == "__main__":
+def writeMessage():
+    while True:                                          #message layout
+        message = '{}: {}'.format(user, input(''))
+        clientSocket.sendall(message.encode())
+
 ip, user, port = getParameters()
-startClient()
-print('You have left the chat')
+
+clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)      #socket initialization
+clientSocket.connect((ip, port))                             #connecting client to server
+print(f'Welcome to the server {user}!')
+receive_thread = threading.Thread(target=receiveMessage)               #receiving multiple messages
+receive_thread.start()
+write_thread = threading.Thread(target=writeMessage)                   #sending messages 
+write_thread.start()

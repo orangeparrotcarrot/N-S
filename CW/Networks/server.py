@@ -1,105 +1,59 @@
 import socket
-import select
 import sys
+import threading
 
-def getparameters():
+def getParameters():
     try: 
         port = sys.argv[1]
         port = int(port)
         return port
     except:
         print("Port number must be an integer")
-        sys.exit()
+        sys.exit()                                      
 
-def broadcast(sock, message):
-    #doesn't send to correct clients
-    # print(message)
-    eligibleSockets = socketList.copy()
-    # print(eligibleSockets)
-    try:
-        eligibleSockets.remove(sock)
-    except:
-        print('sock didn\'t work')
-    try:
-        eligibleSockets.remove(serverSocket)
-    except:
-        print('server did not work')
-    # print(eligibleSockets)
-    for socket in eligibleSockets:
-        # send the message only to peer
-        if (socket != serverSocket) and (socket != sock) : #ie all other clients
-        # if socket != serverSocket:
-            try :
-                socket.sendall(message.encode())
-            except :
-                # broken socket connection
-                socket.close()
-                # broken socket, remove it
-                if socket in socketList:
-                    socketList.remove(socket)
-    # print(message)
+def broadcast(message):                                                 #broadcast function declaration
+    for client in clients:
+        client.send(message)
 
-def startServer(port):
-    i = 0
+def handle(client):                                         
     while True:
-        r, w, e = select.select(socketList, [],socketList)
-        if (serverSocket in r):
-                connection, clientAddress = serverSocket.accept()
-                socketList.append(connection)
-                data = connection.recv(1024)
-                x = data.decode()
-                clients[connection]=x
-                connection.sendall(f"You entered the chat. Your username is {x}. To leave the chat, press q.".encode())
-                broadcast(connection, f'{x} has entered the chat. Say hi!')
-                # serverSocket.sendall(f"You entered the chat. Your username is {x}. To leave the chat, press q.".encode())
-        else:
-            for s in r:
-                user = clients[s]
-                data = s.recv(1024)
-                x=data.decode()
-                message = x.split()
-                print(message)
-                if (not data) or (message[1]=='q'):
-                    s.sendall('q'.encode())
-                    broadcast(connection, f'{user} has left the chat')
-                    socketList.remove(s)
-                    del clients[s]
-                    connection.close()
-                else:
-                    broadcast(connection, x)
-        # print(socketList)
-        # print("\n")
-       
+        try:                                                            #recieving valid messages from client
+            message = client.recv(1024)
+            broadcast(message)
+            print(message.decode())
+        except:                               
+            clients.remove(client)
+            client.close()
+            nickname = nicknames[client]
+            del nicknames[client]
+            broadcast('{} left!'.format(nickname).encode())
+            print(f'{nickname} left!')
+            break
 
-# single person !!
+def receiveConnection():                                                          #accepting multiple clients
+    while True:
+        client, address = serverSocket.accept() 
+        client.send('NICKNAME'.encode())
+        nickname = client.recv(1024).decode()
+        nicknames[client] = nickname
+        clients.append(client)
+        print(f'{nickname} joined at {str(address)}')
+        broadcast("{} joined!".format(nickname).encode())
+        client.send('Connected to server!'.encode())
+        receiveThread = threading.Thread(target=handle, args=(client,))
+        receiveThread.start()
 
-    # while True:
-    #     conn, addr = serverSocket.accept()
-    #     with conn:
-    #         while True:
-    #             #basically gets data, and sends it back
-    #             data = conn.recv(1024)
-    #             x = data.decode()
-    #             print(x)
-    #             if not data:
-    #                 break
-    #             elif x == 'q':
-    #                 # if the user ends the chat
-    #                 break
-    #             # conn.sendall(data)
-    #     break
+
+ip = '192.168.139.1'                                                      #LocalHost
+port = getParameters()                                                             #Choosing unreserved port
+
+serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)              #socket initialization
+serverSocket.bind((ip, port))                                               #binding host and port to socket
+serverSocket.listen()
+print(f'Listening at {ip}:{port}')
+
+clients = []
+nicknames = {}
+receiveConnection()
 
 # cd desktop/du/year 2/networks and systems/cw/networks
-# client.py 192.168.139.1 x 8080
-
-port = getparameters()
-ip = '192.168.139.1'
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as serverSocket:
-    serverSocket.bind((ip,port))
-    serverSocket.listen()
-    print(f'Listening for connections on {ip}:{port}')
-
-    clients = {}
-    socketList = [serverSocket]
-
-    startServer(port)
