@@ -1,6 +1,7 @@
 import socket
 import sys
 import threading
+import os
 
 def getParameters():
     #gets the ip address, user nickname and port number from the command line.
@@ -9,15 +10,13 @@ def getParameters():
         user = sys.argv[2]
         port = sys.argv[3]
     except:
-        print("Format: IP address username port number")
+        #catches if any argument is blank
+        print("Format: IP address username port number eg 127.0.0.1 user 8080")
         sys.exit()
     try:
         port = int(port)
     except:
         print("Port number (third input) must be an integer")
-        sys.exit()
-    if user == '':
-        print('Please enter a username')
         sys.exit()
     return ip, user, port
 
@@ -28,20 +27,29 @@ def receiveMessage():
             message = clientSocket.recv(1024).decode()
             if message == 'USERNAME':
                 clientSocket.sendall(user.encode())
+            elif message == 'USERNAME TAKEN':
+                print('The username you have chosen is already in use. Please try again')
+                clientSocket.close()
+                break
             else:
                 print(message)
         except:
             print("An error occured!")
             clientSocket.close()
-            sys.exit()
+            break
+    os._exit(0)
 
 def writeMessage():
     #send a message
     while 1:
         message = input('')
-        message = f'{user}: {message}'
-        clientSocket.sendall(message.encode())
-
+        if message == 'exit':
+            os._exit(0)
+            # clientSocket.close()
+            # break
+        else:
+            message = f'{user}: {message}'
+            clientSocket.sendall(message.encode())
 
 ip, user, port = getParameters()
 try:
