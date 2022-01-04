@@ -12,69 +12,57 @@ def getParameters():
         print("Port number must be an integer")
         sys.exit()                                      
 
-def broadcast(message, currentClient):
+def broadcast(message):
     #sends a message to each client
-    for client in clients:
+    for client in connectedClients:
         client.send(message)
 
-def handle(client):
-    #handles the clients
+def handle(client, logFile):
     while 1:
         try:
-            #receive a valid message from a client
             message = client.recv(1024)
-            broadcast(message, client)
-            print(message.decode())
-            logFile.write(message.decode())
-            print(logFile.closed)
-        except:
-            #if the message is invalid, or something goes wrong.
-            clients.remove(client)
+            broadcast(message)
+            message = message.decode()
+            print(message)
+            logFile.write(message+'\n')
+        except:     #if something goes wrong   
+            #close the connection                      
+            connectedClients.remove(client)
             client.close()
+            #tell all other users
             nickname = usernames[client]
+            message = f'{nickname} left!'
+            broadcast(message.encode())
+            print(message)
             del usernames[client]
-            broadcast('{} left!'.format(nickname).encode(),'')
-            print(f'{nickname} left!')
-            logFile.write(f'{nickname} left\n')
+            #write to file
+            logFile.write(message+'\n')
+            if len(connectedClients)==0:
+                logFile.close()
             break
-
-def write():
-    while 1:
-        try:
-            message = input('')
-            if message == 'q':
-                print(message)
-        except KeyboardInterrupt:
-            print('keyboard interrupt')
-        #     logFile.close()
-        #     serverSocket.close()
-        #     print(logFile.closed)
-        #     print('server closed')
-        #     sys.exit() #won't work
 
 def receiveConnection():
     #accepts multiple clients
     while 1:
-        try:
-            client, address = serverSocket.accept() 
-            # receives nickname from client
-            client.send('USERNAME'.encode())
-            nickname = client.recv(1024).decode()
-            usernames[client] = nickname
-            clients.append(client)
-            print(f'{nickname} joined at {str(address)}')
-            logFile.write(f'{nickname} joined at {str(address)}\n')
-            print(logFile.closed)
-            broadcast("{} joined!".format(nickname).encode(),client)
-            client.send(f'Welcome to the server {nickname}!'.encode())
-            receiveThread = threading.Thread(target=handle, args=(client,))
-            receiveThread.start()
-            writeThread = threading.Thread(target=write)
-            writeThread.start()
-        except KeyboardInterrupt:
-            print('interrupt')
-            break
+        if len(connectedClients)==0:
+            logFile = open('server.log', 'a')
+            print('log open')
+        client, address = serverSocket.accept() 
+        client.send('USERNAME'.encode())
+        nickname = client.recv(1024).decode()
+        usernames[client] = nickname
+        connectedClients.append(client)
+        print(f'{nickname} joined at {str(address)}')
+        logFile.write(f'{nickname} joined at {str(address)}\n')
+        broadcast("{} joined!".format(nickname).encode())
+        client.send(f'Welcome to the server {nickname}!'.encode())
+        receiveThread = threading.Thread(target=handle, args=(client,logFile))
+        receiveThread.start()
 
+def writeToLog():
+    logFile = open('server.log','w')
+    logFile.write(f'Listening at {ip}:{port}\n')
+    logFile.close()
 
 ip = '192.168.139.1'
 port = getParameters()
@@ -82,12 +70,9 @@ serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.bind((ip, port))
 serverSocket.listen()
 print(f'Listening at {ip}:{port}')
-with open('server.log', 'w+') as logFile:
-# logFile = open('server.log','w')
-    logFile.write(f'Listening at {ip}:{port}\n')
-    # logFile.close()
-    clients = []
-    usernames = {}
-    receiveConnection()
+writeToLog()
+connectedClients = []
+usernames = {}
+receiveConnection()
 # cd desktop/du/year 2/networks and systems/cw/networks
 # server.py 8080

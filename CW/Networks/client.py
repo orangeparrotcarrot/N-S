@@ -33,7 +33,7 @@ def receiveMessage():
         except:
             print("An error occured!")
             clientSocket.close()
-            break
+            sys.exit()
 
 def writeMessage():
     #send a message
