@@ -32,7 +32,10 @@ def receiveMessage():
                 clientSocket.close()
                 break
             else:
-                print(message)
+                os.system("")
+                newLine = '\033[D'
+                print(f'{newLine}'+message+'\n>', end='')
+                # print(message+'\n>', end = '')
         except:
             print("An error occured!")
             clientSocket.close()

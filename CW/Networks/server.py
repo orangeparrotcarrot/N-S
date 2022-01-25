@@ -1,6 +1,7 @@
 import socket
 import sys
 import threading
+import os
 
 def getParameters():
     #gets port number from command line
@@ -29,6 +30,7 @@ def closeConnection(client,logFile):
     del usernames[client]
     #write to file
     logFile.write(message+'\n')
+    print(len(connectedClients))
     if len(connectedClients)==0:
         logFile.close()
 
@@ -47,6 +49,26 @@ def handle(client, logFile):
             closeConnection(client,logFile)
             break
 
+def serverWrite(logFile):
+    while 1:
+        message = input('')
+        if message == 'exit':
+            clients = connectedClients.copy()
+            # print(len(clients))
+            for client in clients:
+                print(connectedClients==clients)
+                connectedClients.remove(client)
+                client.close()
+                # closeConnection(client, logFile)
+            # print(connectedClients)
+            print(logFile.closed)
+            if logFile.closed:
+                logFile = open('server.log', 'a')
+            logFile.write('Server crashed')
+            logFile.close()
+            print('Server crashed')
+            os._exit(0)
+
 def receiveConnection():
     #accepts multiple clients
     while 1:
@@ -63,13 +85,14 @@ def receiveConnection():
             if len(connectedClients)==1:
                 logFile = open('server.log', 'a') #adds to end of file
             print(f'{username} joined at {str(address)}')
-            print((connectedClients))
             logFile.write(f'{username} joined at {str(address)}\n')
             broadcast("{} joined!".format(username).encode())
-            client.send(f'Welcome to the server {username}! Enter your messages below on the blank line. Type exit to exit the chat.'.encode())
-            #starts the thread
+            client.send(f'Welcome to the server {username}! Enter your messages below on the blank line. Type exit to exit the chat.\n'.encode())
+            #starts the threads
             receiveThread = threading.Thread(target=handle, args=(client,logFile))
             receiveThread.start()
+            writeThread = threading.Thread(target=serverWrite, args=(logFile,))
+            writeThread.start()
 
 def writeToLog():
     logFile = open('server.log','w') #creates file or overwrites existing file
