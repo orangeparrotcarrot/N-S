@@ -1,3 +1,4 @@
+import time
 import socket
 import sys
 import threading
@@ -21,7 +22,7 @@ def broadcast(message):
 def closeConnection(client,logFile):
     connectedClients.remove(client)
     client.close()
-    #tell all other users
+    # tell all other users
     username = usernames[client]
     nicknames.remove(username)
     message = f'{username} left!'
@@ -30,7 +31,6 @@ def closeConnection(client,logFile):
     del usernames[client]
     #write to file
     logFile.write(message+'\n')
-    print(len(connectedClients))
     if len(connectedClients)==0:
         logFile.close()
 
@@ -49,30 +49,43 @@ def handle(client, logFile):
             closeConnection(client,logFile)
             break
 
+def serverCrash(logFile):
+    # write to the log file
+    if logFile.closed:
+            logFile = open('server.log', 'a')
+    logFile.write('Server crashed\n')
+    clients = connectedClients.copy()
+    # close all connections
+    for client in clients:
+        connectedClients.remove(client)
+        client.close()
+        username = usernames[client]
+        nicknames.remove(username)
+        message = f'{username} left!'
+        del usernames[client]
+        #write to file
+        logFile.write(message+'\n')
+    logFile.close()
+    print('Server crashed')
+    os._exit(0)
+
 def serverWrite(logFile):
-    while 1:
-        message = input('')
-        if message == 'exit':
-            clients = connectedClients.copy()
-            # print(len(clients))
-            for client in clients:
-                print(connectedClients==clients)
-                connectedClients.remove(client)
-                client.close()
-                # closeConnection(client, logFile)
-            # print(connectedClients)
-            print(logFile.closed)
-            if logFile.closed:
-                logFile = open('server.log', 'a')
-            logFile.write('Server crashed')
-            logFile.close()
-            print('Server crashed')
-            os._exit(0)
+    try:
+        while 1:
+            try:
+                message = input('')
+                if message == 'exit':
+                    serverCrash(logFile)
+            except:
+                serverCrash(logFile)
+    except KeyboardInterrupt:
+        serverCrash(logFile)
+
 
 def receiveConnection():
     #accepts multiple clients
     while 1:
-        client, address = serverSocket.accept() 
+        client, address = serverSocket.accept()
         #get username from client
         client.send('USERNAME'.encode())
         username = client.recv(1024).decode()
@@ -82,16 +95,17 @@ def receiveConnection():
             usernames[client] = username
             nicknames.append(username)
             connectedClients.append(client)
-            if len(connectedClients)==1:
+            if len(connectedClients) == 1:
                 logFile = open('server.log', 'a') #adds to end of file
-            print(f'{username} joined at {str(address)}')
-            logFile.write(f'{username} joined at {str(address)}\n')
+            message = f'{username} joined at {str(address)}'
+            print(message)
+            logFile.write(message+'\n')
             broadcast("{} joined!".format(username).encode())
-            client.send(f'Welcome to the server {username}! Enter your messages below on the blank line. Type exit to exit the chat.\n'.encode())
+            client.send(f'Welcome to the server {username}! Enter your messages below where there is a >. Type exit to exit the chat.\n'.encode())
             #starts the threads
             receiveThread = threading.Thread(target=handle, args=(client,logFile))
-            receiveThread.start()
             writeThread = threading.Thread(target=serverWrite, args=(logFile,))
+            receiveThread.start()
             writeThread.start()
 
 def writeToLog():
@@ -110,5 +124,6 @@ connectedClients = []
 nicknames = []
 usernames = {}
 receiveConnection()
+
 # cd desktop/du/year 2/networks and systems/cw/networks
 # server.py 8080

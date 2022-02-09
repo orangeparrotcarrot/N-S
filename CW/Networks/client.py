@@ -22,22 +22,25 @@ def getParameters():
 
 def receiveMessage():
     #receive a message
+    os.system("")
+    newLine = '\033[D'
     while 1:
         try:
             message = clientSocket.recv(1024).decode()
             if message == 'USERNAME':
+                # the client sends the username to the server before any input
                 clientSocket.sendall(user.encode())
             elif message == 'USERNAME TAKEN':
+                # the username must be unique
                 print('The username you have chosen is already in use. Please try again')
                 clientSocket.close()
                 break
             else:
-                os.system("")
-                newLine = '\033[D'
+                #prints the message from the server
+                #ensures the user always has a prompt to write their message
                 print(f'{newLine}'+message+'\n>', end='')
-                # print(message+'\n>', end = '')
         except:
-            print("An error occured!")
+            print(f"{newLine}"+"An error occured!")
             clientSocket.close()
             break
     os._exit(0)
@@ -47,9 +50,8 @@ def writeMessage():
     while 1:
         message = input('')
         if message == 'exit':
+            #user leaves the server
             os._exit(0)
-            # clientSocket.close()
-            # break
         else:
             message = f'{user}: {message}'
             clientSocket.sendall(message.encode())
@@ -59,13 +61,14 @@ try:
     #try and connect to the server
     clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)      #socket initialization
     clientSocket.connect((ip, port))
+    # start threads
     receive_thread = threading.Thread(target=receiveMessage)               #receiving multiple messages
     receive_thread.start()
     write_thread = threading.Thread(target=writeMessage)                   #sending messages 
     write_thread.start()
 except:
     #if something is wrong.
-    print('Server may be unavailable or the IP address / port number is incorrect. \nCheck IP address and host and try again later')
+    print('Server is unavailable or the IP address / port number is incorrect. \nCheck IP address and host and try again later')
     sys.exit()
 
 # cd desktop/du/year 2/networks and systems/cw/networks
