@@ -1,9 +1,12 @@
-Listening at 192.168.139.1:8080
-liv joined at ('192.168.139.1', 56404)
-liv: hi
-sid joined at ('192.168.139.1', 56405)
-sid: hi
-sid: whho
-sid left!
-Server crashed
-liv left!
+Listening at :8080
+user1 joined at ('192.168.139.1', 60167)
+user2 joined at ('192.168.139.1', 60172)
+user1: hi
+user2: hi !!
+user1: how are you?
+user2: good !!
+user2: bye 
+user2 left!
+user1: bye
+user1 left!
+Server closed

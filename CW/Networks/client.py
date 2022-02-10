@@ -14,6 +14,7 @@ def getParameters():
         print("Format: IP address username port number eg 127.0.0.1 user 8080")
         sys.exit()
     try:
+        # ensures the port is valid
         port = int(port)
     except:
         print("Port number (third input) must be an integer")
@@ -70,6 +71,3 @@ except:
     #if something is wrong.
     print('Server is unavailable or the IP address / port number is incorrect. \nCheck IP address and host and try again later')
     sys.exit()
-
-# cd desktop/du/year 2/networks and systems/cw/networks
-# client.py 192.168.139.1 liv 8080

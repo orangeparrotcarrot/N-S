@@ -20,6 +20,7 @@ def broadcast(message):
         client.sendall(message)
 
 def closeConnection(client,logFile):
+    # closes a connection and adds to the log file.
     connectedClients.remove(client)
     client.close()
     # tell all other users
@@ -34,7 +35,8 @@ def closeConnection(client,logFile):
     if len(connectedClients)==0:
         logFile.close()
 
-def handle(client, logFile):
+def receive(client, logFile):
+    # receive messages from the client
     while 1:
         try:
             #receive message, and send to other clients
@@ -49,11 +51,15 @@ def handle(client, logFile):
             closeConnection(client,logFile)
             break
 
-def serverCrash(logFile):
+def serverCrash(logFile, crash):
+    # crashes the server
     # write to the log file
     if logFile.closed:
             logFile = open('server.log', 'a')
-    logFile.write('Server crashed\n')
+    if crash:
+        logFile.write('Server crashed\n')
+    else:
+        logFile.write('Server closed\n')
     clients = connectedClients.copy()
     # close all connections
     for client in clients:
@@ -66,20 +72,24 @@ def serverCrash(logFile):
         #write to file
         logFile.write(message+'\n')
     logFile.close()
-    print('Server crashed')
+    if crash:
+        print('Server crashed')
     os._exit(0)
 
 def serverWrite(logFile):
+    # allows an input the server - used to close the server
     try:
         while 1:
             try:
                 message = input('')
                 if message == 'exit':
-                    serverCrash(logFile)
+                    serverCrash(logFile, True)
+                elif message == 'q':
+                    serverCrash(logFile, False)
             except:
-                serverCrash(logFile)
+                serverCrash(logFile, True)
     except KeyboardInterrupt:
-        serverCrash(logFile)
+        serverCrash(logFile, True)
 
 
 def receiveConnection():
@@ -92,6 +102,7 @@ def receiveConnection():
         if username in nicknames:
             client.send('USERNAME TAKEN'.encode())
         else:
+            # add the client and usernames
             usernames[client] = username
             nicknames.append(username)
             connectedClients.append(client)
@@ -103,18 +114,20 @@ def receiveConnection():
             broadcast("{} joined!".format(username).encode())
             client.send(f'Welcome to the server {username}! Enter your messages below where there is a >. Type exit to exit the chat.\n'.encode())
             #starts the threads
-            receiveThread = threading.Thread(target=handle, args=(client,logFile))
+            receiveThread = threading.Thread(target=receive, args=(client,logFile))
             writeThread = threading.Thread(target=serverWrite, args=(logFile,))
             receiveThread.start()
             writeThread.start()
 
 def writeToLog():
+    # write to the log file
     logFile = open('server.log','w') #creates file or overwrites existing file
     logFile.write(f'Listening at {ip}:{port}\n')
     logFile.close()
 
-ip = '192.168.139.1'
+ip = ''
 port = getParameters()
+# create socket
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)    
 serverSocket.bind((ip, port))
 serverSocket.listen()
@@ -123,7 +136,5 @@ writeToLog()
 connectedClients = []
 nicknames = []
 usernames = {}
+print("Type q to exit the server. Type exit to crash.")
 receiveConnection()
-
-# cd desktop/du/year 2/networks and systems/cw/networks
-# server.py 8080
