@@ -1,0 +1,35 @@
+Cyber security coursework
+- weak username and password 
+- possible sql injection on site (chat/ login section)
+	- username blank
+	- ' or 1=1--+
+	- have found all passwords and credit card details
+- able to access CEO bitcoin (guess - haven't done it yet)
+- can probs get into database (need password)
+- can probs get into bitcoins (need password)
+- can get into private desktop
+- etc/shadow needs password
+- all of the above require a password (same) (not any of the ones on the website)
+- jess has confidential stuff - bitcoin encryption? - need a password (not on website)
+- groot also has one
+- NEED SUDO PASSWORD
+- alice, tux is hidden
+- groot desktop hidden
+- jess has an encrypted selfie - might also need gimp to open?
+- jess, karl have ascii in images
+- mark has a picture of a newspaper, Downloads hidden
+- karl has zip file - should only attemptto unzip encrypted archives offline, not direclt on the server
+- can change user to chris (need password)
+- passwords stored in /etc/passwd - no shadow file - -can see all encyrpted passwords , including root- SHA-512-crypt encryption used(can tell from $6$)
+
+
+
+
+CRIME NOTES / LOVE LIFE (8 MARKS)
+karl acting suspiciously, alice got death threat, karl has suspicious stuff (encrypted zip) 
+note written by someone in office (likely karl)
+mark in love with alice
+
+
+
+Other
