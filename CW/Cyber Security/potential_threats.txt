@@ -1,0 +1,16 @@
+- cryptography
+	- substitution cyphers
+	- symmetric key vs asymmetric key
+	- public keys
+	- block ciphers (symmetric key, used for files) aes/ des - jess file?
+	- ecb modes
+	- hashes, can't be reversed: sha-256 and sha-512 are the most secure
+	- precomputed hashes using rainbow tables
+	- salt passwords so same passwords have different hashes
+	- passwords stored in /etc/shadow
+- OS
+	- access control - subjects are people. objects are files
+	- user permissions: resource type, user rules, group rules, other rules
+	- setuid bit: users run exe with permissions of exe's owner
+	- sticky bit: prevents users w w/exe permission from deleting directory contained files
+	- link vulnerabilities: add new path to an inode

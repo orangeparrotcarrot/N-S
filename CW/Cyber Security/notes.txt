@@ -1,34 +1,56 @@
 Cyber security coursework
+general notes
 - weak username and password 
 - possible sql injection on site (chat/ login section)
 	- username blank
 	- ' or 1=1--+
 	- have found all passwords and credit card details
-- able to access CEO bitcoin (guess - haven't done it yet)
 - can probs get into database (need password)
-- can probs get into bitcoins (need password)
+- can probs get into bitcoins (need password) DONE
 - can get into private desktop
-- etc/shadow needs password
 - all of the above require a password (same) (not any of the ones on the website)
 - jess has confidential stuff - bitcoin encryption? - need a password (not on website)
-- groot also has one
-- NEED SUDO PASSWORD
-- alice, tux is hidden
-- groot desktop hidden
-- jess has an encrypted selfie - might also need gimp to open?
-- jess, karl have ascii in images
+- has encrypted image - aes 256 which can be reversed online apparently
+- hidden desktop , only "users" and jess can open
+- groot also has one - can open if user is root
+- NEED SUDO PASSWORD - 123345678
+- alice, tux is hidden - no read access
+- root can access tux?
+- groot desktop hidden - can access if root
 - mark has a picture of a newspaper, Downloads hidden
 - karl has zip file - should only attemptto unzip encrypted archives offline, not direclt on the server
 - can change user to chris (need password)
 - passwords stored in /etc/passwd - no shadow file - -can see all encyrpted passwords , including root- SHA-512-crypt encryption used(can tell from $6$)
+- can probably work out who has bought what (from a hint on the website)
+- groups stored in etc/group:
+	- user in user, tty, disk, kmem, floppy, video, crom, audio, tape, dialout
+	- root in root, disk, wheel
+	- groot in root
+	- jess in 1001
+	- mark in 1002
+	- alice in 1003
+	- karl in karl
+- idk who is in users?
+- must be able to do XSS bc it has come up so much - look at practical answers
+- can use john the ripper but can't download it directly
 
-
+VULNERABILITIES
+- can get user names and credit card details from website (SQL injection)
+- can get CEO bitcoin password (stack overflow)
+- can access database records
+- can access other people's desktops w their private info
+- can probably access user's purchase history
+- can execute js on website (XSS)
+- find other files through url on website
+- use john the ripper to crack the root password (12345678)
 
 
 CRIME NOTES / LOVE LIFE (8 MARKS)
 karl acting suspiciously, alice got death threat, karl has suspicious stuff (encrypted zip) 
 note written by someone in office (likely karl)
 mark in love with alice
+MO seems to be biros
+jess trying to kill alice (apparently)
 
 
 
